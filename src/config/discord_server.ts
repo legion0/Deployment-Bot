@@ -32,4 +32,5 @@ export default {
     strike_vc_category_prefix: "Strike Channels",
     strike_vc_category_max_channels: 2,
     clear_vc_channels_every_minutes: 1,
+    default_hot_drop_interval_seconds: 300,
 }

@@ -1,9 +1,11 @@
 import {ApplicationCommandOptionType} from "discord.js";
 import Slashcommand from "../classes/Slashcommand.js";
 import ms from "ms";
-import {client, setDeploymentTime} from "../index.js";
 import {buildEmbed} from "../utils/embedBuilders/configBuilders.js";
 import updateQueueMessages from "../utils/updateQueueMessage.js";
+import { client } from "../index.js";
+import { startQueuedGame } from "../utils/startQueuedGame.js";
+import { Duration } from "luxon";
 
 export default new Slashcommand({
     name: "set-deployment-time",
@@ -21,9 +23,9 @@ export default new Slashcommand({
         }
     ],
     func: async function({ interaction }) {
-        const time = ms(interaction.options.getString("time"));
+        const hotDropDeploymentIntervalDuration = Duration.fromMillis(ms(interaction.options.getString("time")));
 
-        if (!time) {
+        if (!hotDropDeploymentIntervalDuration || !hotDropDeploymentIntervalDuration.isValid) {
             const errorEmbed = buildEmbed({ preset: "error" })
                 .setTitle("Invalid time")
                 .setDescription("Please provide a valid time");
@@ -31,15 +33,17 @@ export default new Slashcommand({
             return await interaction.reply({ embeds: [errorEmbed], ephemeral: true });
         }
 
-        await setDeploymentTime(time.toString());
+        await startQueuedGame(hotDropDeploymentIntervalDuration);
+        clearInterval(client.interval);
+        client.interval = setInterval(() => {
+            startQueuedGame(hotDropDeploymentIntervalDuration);
+        }, hotDropDeploymentIntervalDuration.toMillis());
 
         const successEmbed = buildEmbed({ preset: "success" })
             .setTitle("Deployment time set")
-            .setDescription(`The deployment time has been set to ${time}`);
+            .setDescription(`The deployment time has been set to ${hotDropDeploymentIntervalDuration.toHuman()}`);
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
-
-        client.nextGame = new Date(Date.now() + time);
 
         await updateQueueMessages(true, client.nextGame.getTime(), false);
     }

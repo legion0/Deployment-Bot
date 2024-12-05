@@ -20,6 +20,7 @@ import {buildDeploymentEmbed} from "../../utils/embedBuilders/signupEmbedBuilder
 import LatestInput from "../../tables/LatestInput.js";
 import { findAllVcCategories } from "../../utils/findChannels.js";
 import discord_server_config from "../../config/discord_server.js";
+import { getNextHotDropInterval } from "../../utils/QueueTime.js";
 
 interface Command {
 	name: string;
@@ -227,17 +228,14 @@ export default {
 				}
 			});
 
-			const deploymentTime = await getDeploymentTime();
-			await startQueuedGame(deploymentTime);
 
-			const interval = setInterval(() => {
-				startQueuedGame(deploymentTime);
-			}, deploymentTime);
-			client.interval = interval;
+			const hotDropDeploymentIntervalDuration = getNextHotDropInterval(config.guildId);
 
-			if (!client.nextGame) {
-				client.nextGame = new Date(Date.now() + deploymentTime);
-			}
+			await startQueuedGame(hotDropDeploymentIntervalDuration);
+			clearInterval(client.interval);
+			client.interval = setInterval(() => {
+				startQueuedGame(hotDropDeploymentIntervalDuration);
+			}, hotDropDeploymentIntervalDuration.toMillis());
 
 			// Scan every X minutes and delete channels that have also been empty on the previous scan.
 			const clearVcChannelsInterval = Duration.fromDurationLike({ 'minutes': discord_server_config.clear_vc_channels_every_minutes });

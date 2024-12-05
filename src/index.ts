@@ -66,16 +66,6 @@ export const getDeploymentTime = async () => {
     return Number(deploymentTime);
 };
 
-export const setDeploymentTime = async (time: string) => {
-    await fs.writeFile("./deploymentTime.txt", time, "utf-8");
-
-    clearInterval(client.interval);
-
-    client.interval = setInterval(() => {
-        startQueuedGame(Number(time));
-    }, Number(time));
-};
-
 if (database.isInitialized) log("Successfully connected to the database");
 idkHowToCallThisHandler.init();
 eventHandler.function();
