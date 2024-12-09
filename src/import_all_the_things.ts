@@ -1,26 +1,23 @@
 import fs from "fs";
 import path from "path";
-import { client } from "../index.js";
 import { fileURLToPath } from 'url';
-import { convertURLs } from "../utils/windowsUrlConvertor.js";
+import { convertURLs } from "./utils/windowsUrlConvertor.js";
+import { CustomClient } from "./custom_client.js";
 
-export default {
-	/**
-	 * @description Registers all the commands, context menus, buttons, modals and select menus
-	 * @author MX1D
-	 */
-	init: async function () {
-		const dirs = ["slashCommands", "buttons", "modals", "selectMenus"];
-		for (const dir of dirs) {
-			await register(dir);
-		}
+/**
+ * @description Registers all the commands, context menus, buttons, modals and select menus
+ */
+export async function importAllTheThings(client: CustomClient) {
+	const dirs = ["slashCommands", "buttons", "modals", "selectMenus"];
+	for (const dir of dirs) {
+		await register(client, dir);
 	}
-};
+}
 
 /**
  * @param { String } dir - The directory to register
  */
-async function register(dir: string) {
+async function register(client: CustomClient, dir: string) {
 	const __filename = fileURLToPath(import.meta.url);
 	const __dirname = path.dirname(__filename);
 
