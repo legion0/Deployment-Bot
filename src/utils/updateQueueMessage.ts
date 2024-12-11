@@ -4,7 +4,7 @@ import {GuildTextBasedChannel} from "discord.js";
 import buildQueueEmbed from "./embedBuilders/buildQueueEmbed.js";
 import {log} from "./logger.js";
 
-export default async function updateQueueMessages(notEnoughPlayers: boolean = false, nextDeploymentTime: number, deploymentCreated: boolean = false) {
+export default async function updateQueueMessages(notEnoughPlayers: boolean, nextDeploymentTime: number, deploymentCreated: boolean) {
     log("Starting updateQueueMessages function", 'Queue System');
 
     const queueMessages = await QueueStatusMsg.find();
