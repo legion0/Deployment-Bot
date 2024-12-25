@@ -1,5 +1,5 @@
-import {ApplicationCommandOptionType} from "discord.js";
-import Command from "../classes/Command.js";
+import { ChatInputCommandInteraction, PermissionFlagsBits, RESTPostAPIChatInputApplicationCommandsJSONBody, SlashCommandBuilder, SlashCommandStringOption } from "discord.js";
+import { CommandV2 } from "../classes/Command.js";
 import ms from "ms";
 import { buildEmbed } from "../utils/embedBuilders/configBuilders.js";
 import { Duration } from "luxon";
@@ -21,22 +21,20 @@ function parseDeploymentTimeString(input: string) {
     return duration;
 }
 
-export default new Command({
-    name: "set-deployment-time",
-    description: "Set the deployment time",
-    permissions: ["Administrator"],
-    requiredRoles: [],
-    blacklistedRoles: [],
-    cooldown: 0,
-    options: [
-        {
-            name: "time",
-            description: "The time of the deployment",
-            type: ApplicationCommandOptionType.String,
-            required: true
-        }
-    ],
-    callback: async function ({ interaction }) {
+const data = new SlashCommandBuilder()
+    .setName('set-deployment-time')
+    .setDescription('Replies with Pong!')
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .addStringOption(new SlashCommandStringOption()
+        .setName('time')
+        .setDescription('The time of the deployment')
+        .setRequired(true)
+    )
+    .toJSON();
+
+export class SetDeploymentTimeCommand implements CommandV2 {
+    readonly name = data.name;
+    async callback(interaction: ChatInputCommandInteraction) {
         const deploymentInterval = parseDeploymentTimeString(interaction.options.getString("time"));
 
         if (deploymentInterval instanceof Error) {
@@ -56,4 +54,7 @@ export default new Command({
 
         await interaction.reply({ embeds: [successEmbed], ephemeral: true });
     }
-})
+    getData(): RESTPostAPIChatInputApplicationCommandsJSONBody {
+        return data;
+    }
+}
